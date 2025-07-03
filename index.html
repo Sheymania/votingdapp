@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Voting DApp</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+</head>
+<body>
+  <h2>Voting DApp</h2>
+
+  <div>
+    <input type="text" id="eventName" placeholder="Event Name">
+    <input type="number" id="duration" placeholder="Duration (min)">
+    <button onclick="createVotingEvent()">Create Voting Event</button>
+  </div>
+
+  <div>
+    <input type="number" id="eventId" placeholder="Event ID">
+    <input type="text" id="candidateName" placeholder="Candidate Name">
+    <input type="text" id="candidateAddress" placeholder="Candidate Address">
+    <button onclick="registerCandidate()">Register Candidate</button>
+  </div>
+
+  <div>
+    <input type="number" id="voteEventId" placeholder="Event ID">
+    <input type="number" id="candidateIndex" placeholder="Candidate Index">
+    <button onclick="vote()">Vote</button>
+  </div>
+
+  <div>
+    <input type="number" id="winnerEventId" placeholder="Event ID">
+    <button onclick="getWinner()">Get Winner</button>
+    <p id="winnerResult"></p>
+  </div>
+<div>
+  <input type="number" id="eventIdToList" placeholder="Event ID to list candidates">
+  <button onclick="listCandidates()">List Candidates</button>
+  <ul id="candidateList"></ul>
+</div>
+
+
+  <script>
+    const contractAddress = "0xdeb359d5379E3066c6C8e191FB17dE88d0cfF23c";
+
+    const abi = [
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_durationInMinutes",
+				"type": "uint256"
+			}
+		],
+		"name": "createVotingEvent",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "eventCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "eventId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "getCandidate",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "eventId",
+				"type": "uint256"
+			}
+		],
+		"name": "getCandidateCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "eventId",
+				"type": "uint256"
+			}
+		],
+		"name": "getEvent",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "eventId",
+				"type": "uint256"
+			}
+		],
+		"name": "getWinner",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "eventId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "_candidateAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			}
+		],
+		"name": "registerCandidate",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "eventId",
+				"type": "uint256"
+			}
+		],
+		"name": "timeLeft",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "eventId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "candidateIndex",
+				"type": "uint256"
+			}
+		],
+		"name": "vote",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+];
+
+    async function getContract() {
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      return new ethers.Contract(contractAddress, abi, signer);
+    }
+
+    async function createVotingEvent() {
+      const contract = await getContract();
+      const name = document.getElementById("eventName").value;
+      const duration = document.getElementById("duration").value;
+      await contract.createVotingEvent(name, duration);
+      alert("Voting event created!");
+    }
+
+    async function registerCandidate() {
+      const contract = await getContract();
+      const id = document.getElementById("eventId").value;
+      const name = document.getElementById("candidateName").value;
+      const addr = document.getElementById("candidateAddress").value;
+      await contract.registerCandidate(id, addr, name);
+      alert("Candidate registered!");
+    }
+
+    async function vote() {
+      const contract = await getContract();
+      const id = document.getElementById("voteEventId").value;
+      const index = document.getElementById("candidateIndex").value;
+      await contract.vote(id, index);
+      alert("Vote cast!");
+    }
+
+    async function getWinner() {
+      const contract = await getContract();
+      const id = document.getElementById("winnerEventId").value;
+      const result = await contract.getWinner(id);
+      document.getElementById("winnerResult").innerText =
+        `Winner: ${result[0]} with ${result[2].toString()} votes`;
+    }
+async function listCandidates() {
+  const contract = await getContract();
+  const eventId = document.getElementById("eventIdToList").value;
+  const count = await contract.getCandidateCount(eventId);
+
+  const list = document.getElementById("candidateList");
+  list.innerHTML = ""; // Clear previous list
+
+  for (let i = 0; i < count; i++) {
+    const candidate = await contract.getCandidate(eventId, i);
+    const li = document.createElement("li");
+    li.textContent = `#${i} - ${candidate[0]} (Votes: ${candidate[2]})`;
+    list.appendChild(li);
+  }
+}
+
+  </script>
+</body>
+</html>
